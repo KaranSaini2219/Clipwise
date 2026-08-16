@@ -12,6 +12,7 @@ class VideoInfo(BaseModel):
     thumbnail_url: str
     duration_seconds: float
     transcript_language: str
+    transcript_source: str
 
 
 class ProcessVideoResponse(BaseModel):
@@ -36,4 +37,3 @@ class SourceReference(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     sources: list[SourceReference]
-

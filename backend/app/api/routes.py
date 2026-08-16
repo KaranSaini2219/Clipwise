@@ -3,6 +3,7 @@ from app.models.schemas import AskRequest, AskResponse, ProcessVideoRequest, Pro
 from app.services.llm import answer_question, generate_summary
 from app.services.rag import make_chunks, timestamp, vector_store
 from app.services.youtube import TranscriptUnavailable, get_transcript, get_video_title, video_id_from_url
+from app.services.transcription import AudioTranscriptionUnavailable, transcribe_youtube_audio
 
 router = APIRouter(prefix="/api")
 
@@ -16,11 +17,18 @@ async def health() -> dict[str, str]:
 async def process_video(payload: ProcessVideoRequest) -> ProcessVideoResponse:
     try:
         video_id = video_id_from_url(payload.url)
-        segments, language = get_transcript(video_id)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
+
+    transcript_source = "YouTube captions"
+    try:
+        segments, language = get_transcript(video_id)
     except TranscriptUnavailable as exc:
-        raise HTTPException(422, str(exc)) from exc
+        try:
+            segments, language = transcribe_youtube_audio(video_id)
+            transcript_source = "Local Whisper transcription"
+        except AudioTranscriptionUnavailable as fallback_exc:
+            raise HTTPException(422, str(fallback_exc)) from fallback_exc
     title = await get_video_title(video_id)
     chunks = make_chunks(segments)
     exists = vector_store.has_video(video_id)
@@ -35,7 +43,7 @@ async def process_video(payload: ProcessVideoRequest) -> ProcessVideoResponse:
     return ProcessVideoResponse(
         video=VideoInfo(video_id=video_id, url=f"https://www.youtube.com/watch?v={video_id}", title=title,
                         thumbnail_url=f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg", duration_seconds=segments[-1].end,
-                        transcript_language=language),
+                        transcript_language=language, transcript_source=transcript_source),
         summary=summary, indexed_chunks=len(chunks), already_indexed=exists,
     )
 
@@ -54,4 +62,3 @@ async def chat(payload: AskRequest) -> AskResponse:
     except Exception as exc:
         raise HTTPException(502, "The answer provider could not respond.") from exc
     return AskResponse(answer=answer, sources=[SourceReference(start_seconds=c.start, end_seconds=c.end, label=timestamp(c.start), excerpt=c.text[:210] + ("…" if len(c.text) > 210 else "")) for c in chunks[:3]])
-

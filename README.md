@@ -66,7 +66,7 @@ Any OpenAI-compatible endpoint can be used via `openai_compatible` variables. Ne
 ## RAG behavior
 
 1. Validates a YouTube URL and reads caption segments.
-2. Cleans captions while retaining their start/end timestamps.
+2. Cleans captions while retaining their start/end timestamps. If captions are unavailable, it downloads an audio-only temporary file and runs local Faster-Whisper transcription instead.
 3. Creates ~850-character overlapping chunks, embeds them, and persists them in Chroma.
 4. On each question, retrieves the strongest five chunks for that video.
 5. Sends only those excerpts to the LLM with a strict grounding prompt.
@@ -76,8 +76,7 @@ If an answer is not in the excerpts, the assistant says it is not covered by the
 
 ## Troubleshooting
 
-- **No transcript available:** the video may have captions disabled, be private/age-restricted, or have blocked access. Try a public video with captions.
+- **No transcript available:** the app automatically tries local Whisper transcription after caption retrieval fails. The default `base` model is an accuracy/speed balance for CPU use. Set `WHISPER_MODEL=tiny` for maximum speed or `small` for higher accuracy; the first use of each model downloads it. It can still fail for private, age-restricted, or access-blocked videos.
 - **Model download fails:** Sentence Transformers downloads BGE-small on first processing. Confirm internet access, or pre-cache the Hugging Face model.
 - **Generation error:** check `.env`, restart FastAPI, and verify your provider's key/model. Transcript indexing still succeeds if generation fails.
 - **CORS/dev proxy:** use `npm run dev`; it forwards `/api` to port 8000. For a separate deployment set `VITE_API_URL` when building.
-

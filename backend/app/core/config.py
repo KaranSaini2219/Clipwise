@@ -18,7 +18,11 @@ class Settings(BaseSettings):
     openai_compatible_model: str = ""
     chroma_path: Path = Path(__file__).resolve().parents[2] / "data" / "chroma"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
+    transcription_fallback_enabled: bool = True
+    # base is the practical CPU default; use small only when extra accuracy is worth the wait.
+    whisper_model: str = "base"
+    whisper_device: str = "cpu"
+    whisper_compute_type: str = "int8"
 
 
 settings = Settings()
-

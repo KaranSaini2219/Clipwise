@@ -7,4 +7,6 @@ sentence-transformers>=3.0.1
 chromadb>=0.5.5
 openai>=1.40.0
 httpx>=0.27.0
-
+# Used only when a video has no YouTube captions: downloads audio only, then transcribes locally.
+yt-dlp>=2025.1.0
+faster-whisper>=1.1.1
