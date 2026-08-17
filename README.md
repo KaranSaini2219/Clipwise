@@ -114,6 +114,28 @@ This project needs a normal Linux VM—not a serverless function—because it ru
 
 `backend/data` is mounted as a Docker volume bind so indexed transcript data survives restarts. The first embeddings/Whisper use downloads model files and can take several minutes. Do not expose this publicly without rate limiting or authentication if you expect untrusted traffic: audio transcription is CPU-intensive.
 
+## Deploy free on Streamlit Community Cloud
+
+The repository includes a separate `streamlit_app.py` deployment entrypoint. It reuses the backend RAG services but provides a Streamlit UI; the existing React/FastAPI app remains unchanged.
+
+1. Push the latest files to GitHub, then sign in at [share.streamlit.io](https://share.streamlit.io/) using GitHub.
+2. Select **Create app**, choose your repository and branch, and use `streamlit_app.py` as the entrypoint path.
+3. Open **Advanced settings** and select Python 3.12. In the **Secrets** field, add the following TOML (substitute your real Groq key):
+
+   ```toml
+   LLM_PROVIDER = "groq"
+   GROQ_API_KEY = "your_groq_key"
+   GROQ_MODEL = "llama-3.1-8b-instant"
+   TRANSCRIPTION_FALLBACK_ENABLED = true
+   WHISPER_MODEL = "base"
+   WHISPER_DEVICE = "cpu"
+   WHISPER_COMPUTE_TYPE = "int8"
+   ```
+
+4. Click **Deploy**. Community Cloud installs root `requirements.txt` and the `ffmpeg` system dependency declared in `packages.txt`.
+
+This host has limited shared CPU. Captioned videos are the fastest path; local Whisper fallback for an uncaptained video can be slow. Chroma is stored on the app filesystem, so treat its index as temporary and reprocess a video if the service restarts or redeploys. Never add your key to GitHub or commit `.streamlit/secrets.toml`.
+
 ## RAG behavior
 
 1. Validates a YouTube URL and reads caption segments.
