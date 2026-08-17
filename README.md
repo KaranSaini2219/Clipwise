@@ -54,7 +54,7 @@ Open the URL printed by Vite (normally `http://localhost:5173`). The frontend pr
 
 ## Providers
 
-`LLM_PROVIDER=groq` uses the OpenAI-compatible Groq API and `GROQ_MODEL=llama-3.1-8b-instant` by default. For a fully local option, install [Ollama](https://ollama.com), run `ollama pull llama3.2:3b`, then set:
+`LLM_PROVIDER=groq` uses the OpenAI-compatible Groq API and `GROQ_MODEL=openai/gpt-oss-20b` by default. For a fully local option, install [Ollama](https://ollama.com), run `ollama pull llama3.2:3b`, then set:
 
 ```env
 LLM_PROVIDER=ollama
@@ -125,7 +125,8 @@ The repository includes a separate `streamlit_app.py` deployment entrypoint. It 
    ```toml
    LLM_PROVIDER = "groq"
    GROQ_API_KEY = "your_groq_key"
-   GROQ_MODEL = "llama-3.1-8b-instant"
+   GROQ_MODEL = "openai/gpt-oss-20b"
+
    TRANSCRIPTION_FALLBACK_ENABLED = true
    WHISPER_MODEL = "base"
    WHISPER_DEVICE = "cpu"

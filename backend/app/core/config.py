@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     )
     llm_provider: str = "groq"
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     ollama_base_url: str = "http://localhost:11434/v1"
     ollama_model: str = "llama3.2:3b"
     openai_compatible_base_url: str = ""
