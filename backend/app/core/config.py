@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     openai_compatible_api_key: str = ""
     openai_compatible_model: str = ""
     chroma_path: Path = Path(__file__).resolve().parents[2] / "data" / "chroma"
+    frontend_dist_dir: Path = Path(__file__).resolve().parents[3] / "frontend" / "dist"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     transcription_fallback_enabled: bool = True
     # base is the practical CPU default; use small only when extra accuracy is worth the wait.

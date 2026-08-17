@@ -63,6 +63,57 @@ OLLAMA_MODEL=llama3.2:3b
 
 Any OpenAI-compatible endpoint can be used via `openai_compatible` variables. Never commit `.env`.
 
+## Deploy to Oracle Cloud Always Free
+
+This project needs a normal Linux VM—not a serverless function—because it runs local embeddings, Chroma, and optional Whisper transcription. Oracle's Always Free Ampere A1 VM is the best no-cost fit: use **up to 2 OCPUs and 12 GB RAM total**, labelled *Always Free*. Oracle availability varies by home region.
+
+1. Create an Ubuntu 24.04 `VM.Standard.A1.Flex` instance in your Oracle Cloud home region with 2 OCPUs and 12 GB RAM. Add ingress rules for TCP **80**, **443**, and optionally **8000** while testing.
+2. SSH into the VM and install Docker:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y docker.io docker-compose-v2 git
+   sudo usermod -aG docker $USER
+   exit
+   ```
+
+   Sign in again after the `exit`.
+
+3. Push this folder to a **private** GitHub repository, then clone it on the VM:
+
+   ```bash
+   git clone https://github.com/YOUR-ACCOUNT/YOUR-REPOSITORY.git youtube-rag
+   cd youtube-rag
+   cp .env.example .env
+   nano .env
+   ```
+
+   Set `GROQ_API_KEY` and replace `DOMAIN` with your real domain. Do not commit `.env`.
+
+4. Point an `A` DNS record for that domain to the VM's public IP. Wait for DNS propagation, then start with HTTPS:
+
+   ```bash
+   docker compose --profile https up -d --build
+   docker compose logs -f app
+   ```
+
+   Caddy automatically obtains and renews the TLS certificate. Visit `https://YOUR-DOMAIN`.
+
+   For an IP-only smoke test, omit the HTTPS profile and visit `http://VM_PUBLIC_IP:8000`:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+5. Later updates:
+
+   ```bash
+   git pull
+   docker compose --profile https up -d --build
+   ```
+
+`backend/data` is mounted as a Docker volume bind so indexed transcript data survives restarts. The first embeddings/Whisper use downloads model files and can take several minutes. Do not expose this publicly without rate limiting or authentication if you expect untrusted traffic: audio transcription is CPU-intensive.
+
 ## RAG behavior
 
 1. Validates a YouTube URL and reads caption segments.
